@@ -31,9 +31,6 @@ def find_zip():
             print("\n>    Found zip: ", extractedpkg)
     return
     
-def find_folder():
-    return
-    
 def extract_zip():
     with zipfile.ZipFile(extractedpkg, 'r') as zip_ref:
         zip_ref.extractall("./")
