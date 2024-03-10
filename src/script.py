@@ -22,6 +22,8 @@ def detect_type():
         
     else:
         print("ERROR!!! Couldn't detect if input is a file or a folder. Maybe it doesn't exist? Please run the program again.")
+        os.system("PAUSE")
+        exit()
 
 def find_zip():
     global extractedpkg
@@ -78,9 +80,7 @@ def pkgjob():
     if os.path.splitext(input_f)[1] == ".pkg":
         print(">    File is a .pkg")
         print(">    Running pkg2zip...\n")
-        subprocess.run(["./bin/pkg2zip.exe", input_f])
-        find_zip()
-        extract_zip()
+        subprocess.run(["./bin/pkg2zip.exe", "-x", input_f])
         organize_cont()
         print(">    Cleaned up files")
         for f in os.listdir("./"):
@@ -89,10 +89,16 @@ def pkgjob():
                 print(">    Found content ID:", cont_id)
     else:
         print("ERROR!!! Please make sure that the specified file is a .pkg file.")
+        os.system("PAUSE")
         exit()
     return
     
 def get_zRIF():
+    if cont_id == "" or None:
+        print("ERROR!!! Couldn't detect content ID. pkg2zip might not be able to extract the pkg. Try running the program again.")
+        os.system("PAUSE")
+        exit()
+        
     zrif = input(">    Enter the zRIF key for your content ({}) : ".format(cont_id))
     if os.path.exists("./decrypted_content"):
         print(">    Found decrypted_content folder")
@@ -107,7 +113,7 @@ def get_zRIF():
     
 # main
 
-print("PS Vita Content DeCryptor v1.0.0a ~ https://github.com/rreha/psvcdc\n")
+print("PS Vita Content DeCryptor v1.1.0a ~ https://github.com/rreha/psvcdc\n")
 try:
     global input_f
     input_f = sys.argv[1] 
@@ -115,10 +121,12 @@ try:
     
 except IndexError:
     print("Please specify a .pkg file or folder (PS Vita)")
+    os.system("PAUSE")
     exit()
  
 detect_type()
 get_zRIF()
 
 print(">    Exiting...")
+os.system("PAUSE")
 exit()
