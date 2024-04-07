@@ -10,3 +10,4 @@ Check out the **[latest release page](https://github.com/rreha/psvcdc/releases/l
 motoharu-gosoto for **[psvpfstools](https://github.com/motoharu-gosuto/psvpfstools)**.</br>
 mmozeiko for **[pkg2zip](https://github.com/mmozeiko/pkg2zip)**.</br>
 brentvollebregt for the **[auto-py-to-exe](https://github.com/brentvollebregt/auto-py-to-exe)**.</br>
+renascene.com for the **[PS Vita Excel Spreadsheet](https://renascene.com/psv/info/card/9999)**.</br>
