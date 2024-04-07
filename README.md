@@ -2,6 +2,7 @@
 This program is a simple content decryptor for **PS Vita** content (games, game updates etc).</br>
 ## TO DO:
 - DLC fix
+- Multiple file support
 - Linux/MacOS support
 - Comments
 # Download & Usage
