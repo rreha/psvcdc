@@ -9,20 +9,79 @@ import openpyxl
 
 # funcs!!1!!
 
-def detect_type():
+def get_cont_id():
     global cont_id
+    cont_id = ""
+    flag = False
+    for folder in os.listdir("./"):
+        if flag == False and folder.startswith("PCS"):
+            cont_id = str(folder)
+            print(">    Found content ID:", cont_id)
+            flag = not flag
+
+
+def detect_type():
+    global content
+    global db_sheet
+    global cont_id
+    global dlc_id
+    cont_id = ""
+    for folder in os.listdir("./"):
+        if folder.startswith("PCS"):
+            shutil.rmtree("./{}".format(folder))
+            
     if os.path.isdir(input_f):
         print(">    Folder detected")
-        index = input_f.find("PCS")
-        if index != -1:  
-            cont = input_f[index:]
-            cont_id = cont.strip()
-            return
+        for folder in os.listdir("./"):
+            if folder == "app":
+                print(">    Detected Game (app)")
+                for f in os.listdir("./app/"):
+                    src = os.path.join("./app", f)
+                    dest = os.path.join("./", f)
+                    shutil.move(src, dest)
+                os.rmdir("./app")
+                content = "app"
+                db_sheet = "GAMES"
+                get_cont_id()
             
-        else:  
-            print("ERROR!!! Couldn't index the input folder. Make sure that it's formatted like PCSXXXXXX.")          
-            os.system("PAUSE")
-            exit()
+            if folder == "patch":
+                print(">    Detected Game Update (patch)")
+                for f in os.listdir("./patch/"):
+                    src = os.path.join("./patch", f)
+                    dest = os.path.join("./", f)
+                    shutil.move(src, dest)
+                os.rmdir("./patch")
+                content = "patch"
+                db_sheet = "GAMES"
+                get_cont_id()
+            
+            if folder == "addcont":
+                print(">    Detected DLC (addcont)")
+                for f in os.listdir("./addcont/"):
+                    src = os.path.join("./addcont", f)
+                    dest = os.path.join("./", f)
+                    shutil.move(src, dest)
+                os.rmdir("./addcont")
+                content = "addcont"
+                db_sheet = "DLC"
+                print(">    Organized files")
+                get_cont_id()
+                cont_id_folder = "./" + cont_id
+            
+                for f in os.listdir("./"):
+                    if os.path.isdir(cont_id_folder):
+                        for folder in os.listdir(cont_id_folder):
+                            dlc_id = folder
+                            src = os.path.join(cont_id_folder, folder)
+                            dest = os.path.join("./", folder)
+                            shutil.move(src, dest)
+                    else:
+                        print("ERROR!!! Error while organizing DLC. Please run the program again.")
+                        os.system("PAUSE")
+                        exit()
+                    
+                print(">    Found DLC ID:", dlc_id)
+                return
         
     if os.path.isfile(input_f):
         print(">    File detected")
@@ -36,6 +95,7 @@ def detect_type():
 def organize_cont():
     global content
     global db_sheet
+    global dlc_id
     for folder in os.listdir("./"):
         if folder == "app":
             print(">    Detected Game (app)")
@@ -44,7 +104,10 @@ def organize_cont():
                 dest = os.path.join("./", f)
                 shutil.move(src, dest)
             os.rmdir("./app")
-            content = "Game"
+            content = "app"
+            db_sheet = "GAMES"
+            print(">    Organized files")
+            get_cont_id()
             return
             
         if folder == "patch":
@@ -54,7 +117,10 @@ def organize_cont():
                 dest = os.path.join("./", f)
                 shutil.move(src, dest)
             os.rmdir("./patch")
-            content = "Update"
+            content = "patch"
+            db_sheet = "GAMES"
+            print(">    Organized files")
+            get_cont_id()
             return
             
         if folder == "addcont":
@@ -64,28 +130,36 @@ def organize_cont():
                 dest = os.path.join("./", f)
                 shutil.move(src, dest)
             os.rmdir("./addcont")
-            content = "DLC"
-            #db_sheet = "DLC"
+            content = "addcont"
+            db_sheet = "DLC"
+            print(">    Organized files")
+            get_cont_id()
+            cont_id_folder = "./" + cont_id
+            
+            for f in os.listdir("./"):
+                if os.path.isdir(cont_id_folder):
+                    for folder in os.listdir(cont_id_folder):
+                        dlc_id = folder
+                        src = os.path.join(cont_id_folder, folder)
+                        dest = os.path.join("./", folder)
+                        shutil.move(src, dest)
+                else:
+                    print("ERROR!!! Error while organizing DLC. Please run the program again.")
+                    os.system("PAUSE")
+                    exit()
+                    
+            print(">    Found DLC ID:", dlc_id)
             return
     return
             
 def pkgjob():
     global cont_id
-    cont_id = ""
-    flag = False
     if os.path.splitext(input_f)[1] == ".pkg":
         print(">    File is a .pkg")
-        print(">    Running pkg2zip...\n")
-        subprocess.run(["./bin/pkg2zip.exe", "-x", input_f])
+        print(">    Running pkg2zip")
+        subprocess.run(["./bin/pkg2zip.exe", "-x", input_f], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
         organize_cont()
-        print(">    Cleaned up files")
         
-        for f in os.listdir("./"):
-            if flag == False and f.startswith("PC") and not f.endswith(".pkg"):
-                cont_id = str(f)
-                print(">    Found content ID:", cont_id)
-                flag = not flag
-                
     else:
         print("ERROR!!! Please make sure that the specified file is a .pkg file.")
         os.system("PAUSE")
@@ -93,13 +167,13 @@ def pkgjob():
     return
     
 def get_zRIF():
+    global db_sheet
     print(">    Finding zRIF key for", cont_id, "(might take a bit)")
     if cont_id == "" or None:
         print("ERROR!!! Couldn't detect content ID. pkg2zip might not be able to extract the pkg. Try running the program again.")
         os.system("PAUSE")
         exit()
         
-    db_sheet = "GAMES"
     search = cont_id
     zrif = None
     
@@ -108,35 +182,93 @@ def get_zRIF():
     for row in sheet.iter_rows():
         for cell in row:
             if cell.value == search:
-                next_cell = sheet.cell(row=cell.row, column=cell.column + 7)
+                if content == "addcont":
+                    next_cell = sheet.cell(row=cell.row, column=cell.column + 5)
+                    
+                else:
+                    next_cell = sheet.cell(row=cell.row, column=cell.column + 7)
                 zrif = next_cell.value
                 break
         if zrif is not None:
             break
 
-    if zrif is not None:
+    if zrif != None or '-' or 'MISSING': #for some reason it still doesn't give an error when zrif is - or MISSING
         print(f'>    Found zRIF ({zrif})')
     else:
         print("ERROR!!! Couldn't find zRIF!")
+        if input_f.endswith('.pkg'):
+            shutil.rmtree("./{}".format(cont_id))
         os.system("PAUSE")
         exit()
         
         
-    #zrif = input(">    Enter the zRIF key for your content ({}) : ".format(cont_id))
     if os.path.exists("./DECRYPTED"):
         print(">    Found DECRYPTED folder")
     else:
         print(">    Creating DECRYPTED folder")
         os.mkdir("./DECRYPTED")
-    print(">    Running psvpfsparser...\n")
-    subprocess.run(["./bin/psvpfsparser/psvpfsparser.exe", "-i", "./{}".format(cont_id), "-o", "./DECRYPTED/{}".format(cont_id),"-f", "cma.henkaku.xyz", "-z", zrif])
-    print("\n>    Saved decrypted content to /DECRYPTED/{}.".format(cont_id))
+    print(">    Running psvpfsparser")
+    if content == "addcont":
+        ret = subprocess.run(["./bin/psvpfsparser/psvpfsparser.exe", "-i", "./{}".format(dlc_id), "-o", "./DECRYPTED/{}".format(dlc_id), "-z", zrif, "-f", "cma.henkaku.xyz"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL)
+        ret_str = str(ret)
+        subprocess.run(["./bin/psvpfsparser/psvpfsparser.exe", "-i", "./{}".format(dlc_id), "-o", "./DECRYPTED/{}".format(dlc_id), "-z", zrif, "-f", "cma.henkaku.xyz"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL)
+        if "invalid" in ret_str:
+            print('ERROR!!! psvpfsparser returned "header signature is invalid". This DLC CANNOT be decrypted...')
+            if input_f.endswith('.pkg') and os.path.exists("./{}".format(cont_id)) and os.path.exists("./{}".format(dlc_id)):
+                shutil.rmtree("./{}".format(cont_id))
+                shutil.rmtree("./{}".format(dlc_id))
+                shutil.rmtree("./DECRYPTED")
+            os.system("PAUSE")
+            exit()
+            
+        if "failed to find unicv.db file or icv.db folder" in ret_str:
+            print('ERROR!!! psvpfsparser returned "failed to find unicv.db file or icv.db folder". This DLC CANNOT be decrypted...')
+            if input_f.endswith('.pkg') and os.path.exists("./{}".format(cont_id)) and os.path.exists("./{}".format(dlc_id)):
+                shutil.rmtree("./{}".format(cont_id))
+                shutil.rmtree("./{}".format(dlc_id))
+                shutil.rmtree("./DECRYPTED")
+            os.system("PAUSE")
+            exit()
+            
+        if not os.path.exists("./DECRYPTED/{}".format(dlc_id)):
+            print("ERROR!!! An error occurred while checking if content was decrypted successfully. Maybe zRIF is invalid? Please run the program again.")
+            if input_f.endswith('.pkg') and os.path.exists("./{}".format(cont_id)) and os.path.exists("./{}".format(dlc_id)):
+                shutil.rmtree("./{}".format(cont_id))
+                shutil.rmtree("./{}".format(dlc_id))
+                shutil.rmtree("./DECRYPTED")
+            os.system("PAUSE")
+            exit()
+            
+        src = os.path.join("./", dlc_id)
+        dest = os.path.join("./", cont_id)
+        shutil.move(src, dest)
+        os.mkdir("./DECRYPTED/{}".format(content))
+        os.mkdir("./DECRYPTED/{}/{}".format(content, cont_id))
+        src = os.path.join("./DECRYPTED/{}".format(dlc_id))
+        dest = os.path.join("./DECRYPTED/{}/{}".format(content, cont_id))
+        shutil.move(src, dest)
+
+    else:
+        os.mkdir("./DECRYPTED/{}".format(content))
+        subprocess.run(["./bin/psvpfsparser/psvpfsparser.exe", "-i", "./{}".format(cont_id), "-o", "./DECRYPTED/{}/{}".format(content, cont_id),"-z", zrif, "-f", "cma.henkaku.xyz"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+        
+    print(">    Saved decrypted content to /DECRYPTED/{}/{}.".format(content, cont_id))
+    
+    rm_encrypted = input(">    Delete encrypted content? (Y/N): ")
+    if rm_encrypted.lower() == "y":
+        shutil.rmtree("./{}".format(cont_id))
+        print(">    Deleted encrypted content.")
+        return
+        
+    else:
+        return
+        
     return
 
     
 # main
 
-print("PS Vita Content DeCryptor v2.0.0a ~ https://github.com/rreha/psvcdc\n")
+print("PS Vita Content DeCryptor v3.0.0a ~ https://github.com/rreha/psvcdc\n")
 try:
     global input_f
     input_f = sys.argv[1] 
