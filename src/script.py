@@ -43,6 +43,7 @@ def detect_type():
                 content = "app"
                 db_sheet = "GAMES"
                 get_cont_id()
+                return
             
             if folder == "patch":
                 print(">    Detected Game Update (patch)")
@@ -54,6 +55,7 @@ def detect_type():
                 content = "patch"
                 db_sheet = "GAMES"
                 get_cont_id()
+                return
             
             if folder == "addcont":
                 print(">    Detected DLC (addcont)")
@@ -168,7 +170,7 @@ def pkgjob():
     
 def get_zRIF():
     global db_sheet
-    print(">    Finding zRIF key for", cont_id, "(might take a bit)")
+    print(">    Finding zRIF key for", cont_id, "(might take a while)")
     if cont_id == "" or None:
         print("ERROR!!! Couldn't detect content ID. pkg2zip might not be able to extract the pkg. Try running the program again.")
         os.system("PAUSE")
@@ -192,7 +194,7 @@ def get_zRIF():
         if zrif is not None:
             break
 
-    if zrif != None or '-' or 'MISSING': #for some reason it still doesn't give an error when zrif is - or MISSING
+    if zrif != None or '-' or 'MISSING': #for some reason it still doesn't give an error when zrif is - or MISSING???
         print(f'>    Found zRIF ({zrif})')
     else:
         print("ERROR!!! Couldn't find zRIF!")
@@ -249,26 +251,43 @@ def get_zRIF():
         shutil.move(src, dest)
 
     else:
-        os.mkdir("./DECRYPTED/{}".format(content))
+        if not os.path.exists("./DECRYPTED/{}".format(content)):
+            os.mkdir("./DECRYPTED/{}".format(content))
         subprocess.run(["./bin/psvpfsparser/psvpfsparser.exe", "-i", "./{}".format(cont_id), "-o", "./DECRYPTED/{}/{}".format(content, cont_id),"-z", zrif, "-f", "cma.henkaku.xyz"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+        os.mkdir("{}".format(content))
+        src = os.path.join("./{}".format(cont_id))
+        dest = os.path.join("./{}/{}".format(content, cont_id))
+        shutil.move(src, dest)
         
     print(">    Saved decrypted content to /DECRYPTED/{}/{}.".format(content, cont_id))
     
     rm_encrypted = input(">    Delete encrypted content? (Y/N): ")
     if rm_encrypted.lower() == "y":
-        shutil.rmtree("./{}".format(cont_id))
-        print(">    Deleted encrypted content.")
-        return
-        
+        shutil.rmtree("./{}".format(content))
+        print(">    Deleted encrypted content")
     else:
-        return
+        print(">    Keeping encrypted content")
+    if content != "addcont":
+        dec_eboot = input(">    Decrypt eboot.bin? (Y/N): ")
+        if dec_eboot.lower() == "y": # self2elf.py -i eboot.bin -o eboot.elf -k ./work.bin
+            print(">    Converting zRIF to work.bin")
+            subprocess.run(["python", "zrif2rif.py", zrif])
+            print(">    Decrypting eboot.bin")
+            subprocess.run(["python", "self2elf.py", "-i", "DECRYPTED/{}/{}/eboot.bin".format(content, cont_id), "-o", "DECRYPTED/{}/{}/eboot_decrypted.bin".format(content, cont_id), "-k", "work.bin"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+            shutil.rmtree("./__pycache__")
+            os.remove("work.bin")
+            print(">    Decrypted eboot.bin (DECRYPTED/{}/{}/eboot_decrypted.bin)".format(content, cont_id))
+            return
         
-    return
+        else:
+            return
+        
+        return
 
     
 # main
 
-print("PS Vita Content DeCryptor v3.0.0a ~ https://github.com/rreha/psvcdc\n")
+print("PS Vita Content DeCryptor v1 ~ https://github.com/rreha/psvcdc\n")
 try:
     global input_f
     input_f = sys.argv[1] 
