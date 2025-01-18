@@ -7,6 +7,7 @@ Check out the **[latest release page](https://github.com/rreha/psvcdc/releases/l
 # Credits
 renascene.com for the **[PS Vita Excel Spreadsheet](https://renascene.com/psv/info/card/9999)**.</br>
 mmozeiko for **[pkg2zip](https://github.com/mmozeiko/pkg2zip)**.</br>
+lusid1 for **[pkg2zip fork](https://github.com/lusid1/pkg2zip)**.</br>
 motoharu-gosoto for **[psvpfstools](https://github.com/motoharu-gosuto/psvpfstools)**.</br>
 Team Molecule for the **[sceutils](https://github.com/TeamMolecule/sceutils)**.</br>
 mathieulh for the **[sceutils fork with proper keys](https://github.com/mathieulh/sceutils)**.</br>

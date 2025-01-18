@@ -1,5 +1,3 @@
-# lets import necessary modules plz
-
 import os
 import time
 import sys
@@ -7,7 +5,10 @@ import subprocess
 import shutil
 import openpyxl
 
-# funcs!!1!!
+if sys.platform.startswith("linux") or sys.platform.startswith("darwin") == True:
+    print("ERROR!!! Sorry, your OS is not supported.")
+    pause = input("Press ENTER to continue...")
+    sys.exit()
 
 def get_cont_id():
     global cont_id
@@ -28,7 +29,7 @@ def detect_type():
     cont_id = ""
     for folder in os.listdir("./"):
         if folder.startswith("PCS"):
-            shutil.rmtree("./{}".format(folder))
+            shutil.rmtree(f"./{folder}")
             
     if os.path.isdir(input_f):
         print(">    Folder detected")
@@ -45,7 +46,7 @@ def detect_type():
                 get_cont_id()
                 return
             
-            if folder == "patch":
+            elif folder == "patch":
                 print(">    Detected Game Update (patch)")
                 for f in os.listdir("./patch/"):
                     src = os.path.join("./patch", f)
@@ -57,7 +58,7 @@ def detect_type():
                 get_cont_id()
                 return
             
-            if folder == "addcont":
+            elif folder == "addcont":
                 print(">    Detected DLC (addcont)")
                 for f in os.listdir("./addcont/"):
                     src = os.path.join("./addcont", f)
@@ -68,7 +69,7 @@ def detect_type():
                 db_sheet = "DLC"
                 print(">    Organized files")
                 get_cont_id()
-                cont_id_folder = "./" + cont_id
+                cont_id_folder = f"./{cont_id}"
             
                 for f in os.listdir("./"):
                     if os.path.isdir(cont_id_folder):
@@ -79,20 +80,20 @@ def detect_type():
                             shutil.move(src, dest)
                     else:
                         print("ERROR!!! Error while organizing DLC. Please run the program again.")
-                        os.system("PAUSE")
-                        exit()
+                        os.system("pause")
+                        sys.exit()
                     
                 print(">    Found DLC ID:", dlc_id)
                 return
         
-    if os.path.isfile(input_f):
+    elif os.path.isfile(input_f):
         print(">    File detected")
         pkgjob()
         
     else:
         print("ERROR!!! Couldn't detect if input is a file or a folder. Maybe it doesn't exist? Please run the program again.")
-        os.system("PAUSE")
-        exit()
+        os.system("pause")
+        sys.exit()
     
 def organize_cont():
     global content
@@ -112,7 +113,7 @@ def organize_cont():
             get_cont_id()
             return
             
-        if folder == "patch":
+        elif folder == "patch":
             print(">    Detected Game Update (patch)")
             for f in os.listdir("./patch/"):
                 src = os.path.join("./patch", f)
@@ -125,7 +126,7 @@ def organize_cont():
             get_cont_id()
             return
             
-        if folder == "addcont":
+        elif folder == "addcont":
             print(">    Detected DLC (addcont)")
             for f in os.listdir("./addcont/"):
                 src = os.path.join("./addcont", f)
@@ -147,8 +148,8 @@ def organize_cont():
                         shutil.move(src, dest)
                 else:
                     print("ERROR!!! Error while organizing DLC. Please run the program again.")
-                    os.system("PAUSE")
-                    exit()
+                    os.system("pause")
+                    sys.exit()
                     
             print(">    Found DLC ID:", dlc_id)
             return
@@ -164,17 +165,17 @@ def pkgjob():
         
     else:
         print("ERROR!!! Please make sure that the specified file is a .pkg file.")
-        os.system("PAUSE")
-        exit()
+        os.system("pause")
+        sys.exit()
     return
     
 def get_zRIF():
     global db_sheet
-    print(">    Finding zRIF key for", cont_id, "(might take a while)")
+    print(f">    Finding zRIF key for {cont_id} (might take a while)")
     if cont_id == "" or None:
         print("ERROR!!! Couldn't detect content ID. pkg2zip might not be able to extract the pkg. Try running the program again.")
-        os.system("PAUSE")
-        exit()
+        os.system("pause")
+        sys.exit()
         
     search = cont_id
     zrif = None
@@ -201,7 +202,7 @@ def get_zRIF():
         if input_f.endswith('.pkg'):
             shutil.rmtree("./{}".format(cont_id))
         os.system("PAUSE")
-        exit()
+        sys.exit()
         
         
     if os.path.exists("./DECRYPTED"):
@@ -211,72 +212,72 @@ def get_zRIF():
         os.mkdir("./DECRYPTED")
     print(">    Running psvpfsparser")
     if content == "addcont":
-        ret = subprocess.run(["./bin/psvpfsparser/psvpfsparser.exe", "-i", "./{}".format(dlc_id), "-o", "./DECRYPTED/{}".format(dlc_id), "-z", zrif, "-f", "cma.henkaku.xyz"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL)
+        ret = subprocess.run(["./bin/psvpfsparser/psvpfsparser.exe", "-i", f"./{dlc_id}", "-o", f"./DECRYPTED/{dlc_id}", "-z", zrif, "-f", "cma.henkaku.xyz"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL)
         ret_str = str(ret)
-        subprocess.run(["./bin/psvpfsparser/psvpfsparser.exe", "-i", "./{}".format(dlc_id), "-o", "./DECRYPTED/{}".format(dlc_id), "-z", zrif, "-f", "cma.henkaku.xyz"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL)
+        subprocess.run(["./bin/psvpfsparser/psvpfsparser.exe", "-i", f"./{dlc_id}", "-o", f"./DECRYPTED/{dlc_id}", "-z", zrif, "-f", "cma.henkaku.xyz"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL)
         if "invalid" in ret_str:
             print('ERROR!!! psvpfsparser returned "header signature is invalid". This DLC CANNOT be decrypted...')
-            if input_f.endswith('.pkg') and os.path.exists("./{}".format(cont_id)) and os.path.exists("./{}".format(dlc_id)):
-                shutil.rmtree("./{}".format(cont_id))
-                shutil.rmtree("./{}".format(dlc_id))
+            if input_f.endswith('.pkg') and os.path.exists(f"./{cont_id}") and os.path.exists(f"./{dlc_id}"):
+                shutil.rmtree(f"./{cont_id}")
+                shutil.rmtree(f"./{dlc_id}")
                 shutil.rmtree("./DECRYPTED")
-            os.system("PAUSE")
-            exit()
+            os.system("pause")
+            sys.exit()
             
-        if "failed to find unicv.db file or icv.db folder" in ret_str:
+        elif "failed to find unicv.db file or icv.db folder" in ret_str:
             print('ERROR!!! psvpfsparser returned "failed to find unicv.db file or icv.db folder". This DLC CANNOT be decrypted...')
-            if input_f.endswith('.pkg') and os.path.exists("./{}".format(cont_id)) and os.path.exists("./{}".format(dlc_id)):
-                shutil.rmtree("./{}".format(cont_id))
-                shutil.rmtree("./{}".format(dlc_id))
+            if input_f.endswith('.pkg') and os.path.exists(f"./{cont_id}") and os.path.exists(f"./{dlc_id}"):
+                shutil.rmtree(f"./{cont_id}")
+                shutil.rmtree(f"./{dlc_id}")
                 shutil.rmtree("./DECRYPTED")
-            os.system("PAUSE")
-            exit()
+            os.system("pause")
+            sys.exit()
             
-        if not os.path.exists("./DECRYPTED/{}".format(dlc_id)):
+        if not os.path.exists(f"./DECRYPTED/{dlc_id}"):
             print("ERROR!!! An error occurred while checking if content was decrypted successfully. Maybe zRIF is invalid? Please run the program again.")
-            if input_f.endswith('.pkg') and os.path.exists("./{}".format(cont_id)) and os.path.exists("./{}".format(dlc_id)):
-                shutil.rmtree("./{}".format(cont_id))
-                shutil.rmtree("./{}".format(dlc_id))
+            if input_f.endswith('.pkg') and os.path.exists(f"./{cont_id}") and os.path.exists(f"./{dlc_id}"):
+                shutil.rmtree(f"./{cont_id}")
+                shutil.rmtree(f"./{dlc_id}")
                 shutil.rmtree("./DECRYPTED")
-            os.system("PAUSE")
-            exit()
+            os.system("pause")
+            sys.exit()
             
         src = os.path.join("./", dlc_id)
         dest = os.path.join("./", cont_id)
         shutil.move(src, dest)
-        os.mkdir("./DECRYPTED/{}".format(content))
-        os.mkdir("./DECRYPTED/{}/{}".format(content, cont_id))
-        src = os.path.join("./DECRYPTED/{}".format(dlc_id))
-        dest = os.path.join("./DECRYPTED/{}/{}".format(content, cont_id))
+        os.mkdir(f"./DECRYPTED/{content}")
+        os.mkdir(f"./DECRYPTED/{content}/{cont_id}")
+        src = os.path.join(f"./DECRYPTED/{dlc_id}")
+        dest = os.path.join(f"./DECRYPTED/{content}/{cont_id}")
         shutil.move(src, dest)
 
     else:
-        if not os.path.exists("./DECRYPTED/{}".format(content)):
-            os.mkdir("./DECRYPTED/{}".format(content))
-        subprocess.run(["./bin/psvpfsparser/psvpfsparser.exe", "-i", "./{}".format(cont_id), "-o", "./DECRYPTED/{}/{}".format(content, cont_id),"-z", zrif, "-f", "cma.henkaku.xyz"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
-        os.mkdir("{}".format(content))
-        src = os.path.join("./{}".format(cont_id))
-        dest = os.path.join("./{}/{}".format(content, cont_id))
+        if not os.path.exists(f"./DECRYPTED/{content}"):
+            os.mkdir(f"./DECRYPTED/{content}")
+        subprocess.run(["./bin/psvpfsparser/psvpfsparser.exe", "-i", f"./{cont_id}", "-o", f"./DECRYPTED/{content}/{cont_id}","-z", zrif, "-f", "cma.henkaku.xyz"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+        os.mkdir(f"{content}")
+        src = os.path.join(f"./{cont_id}")
+        dest = os.path.join(f"./{content}/{cont_id}")
         shutil.move(src, dest)
         
-    print(">    Saved decrypted content to /DECRYPTED/{}/{}.".format(content, cont_id))
+    print(f">    Saved decrypted content to /DECRYPTED/{content}/{cont_id}.")
     
     rm_encrypted = input(">    Delete encrypted content? (Y/N): ")
     if rm_encrypted.lower() == "y":
-        shutil.rmtree("./{}".format(content))
+        shutil.rmtree(f"./{content}")
         print(">    Deleted encrypted content")
     else:
         print(">    Keeping encrypted content")
     if content != "addcont":
         dec_eboot = input(">    Decrypt eboot.bin? (Y/N): ")
-        if dec_eboot.lower() == "y": # self2elf.py -i eboot.bin -o eboot.elf -k ./work.bin
+        if dec_eboot.lower() == "y":
             print(">    Converting zRIF to work.bin")
             subprocess.run(["python", "zrif2rif.py", zrif])
             print(">    Decrypting eboot.bin")
-            subprocess.run(["python", "self2elf.py", "-i", "DECRYPTED/{}/{}/eboot.bin".format(content, cont_id), "-o", "DECRYPTED/{}/{}/eboot_decrypted.bin".format(content, cont_id), "-k", "work.bin"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+            subprocess.run(["python", "self2elf.py", "-i", f"DECRYPTED/{content}/{cont_id}/eboot.bin", "-o", f"DECRYPTED/{content}/{cont_id}/eboot_decrypted.bin", "-k", "work.bin"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
             shutil.rmtree("./__pycache__")
             os.remove("work.bin")
-            print(">    Decrypted eboot.bin (DECRYPTED/{}/{}/eboot_decrypted.bin)".format(content, cont_id))
+            print(f">    Decrypted eboot.bin (DECRYPTED/{content}/{cont_id}/eboot_decrypted.bin)")
             return
         
         else:
@@ -287,20 +288,20 @@ def get_zRIF():
     
 # main
 
-print("PS Vita Content DeCryptor v1 ~ https://github.com/rreha/psvcdc\n")
+print("PS Vita Content DeCryptor v1.1 ~ https://github.com/rreha/psvcdc\n")
 try:
     global input_f
     input_f = sys.argv[1] 
     print(">    Input:", input_f)
     
 except IndexError:
-    print("Please specify a .pkg file or folder (PS Vita)")
-    os.system("PAUSE")
-    exit()
+    print("Please specify a PS Vita .pkg file or a PS Vita folder")
+    os.system("pause")
+    sys.exit()
  
 detect_type()
 get_zRIF()
 
 print(">    Exiting...")
-os.system("PAUSE")
-exit()
+os.system("pause")
+sys.exit()
